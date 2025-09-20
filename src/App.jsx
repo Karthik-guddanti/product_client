@@ -3,7 +3,7 @@ import FilterBar from './components/FilterBar';
 import ProductGrid from './components/ProductGrid';
 import Pagination from './components/Pagination';
 
-const API_URL = 'http://localhost:3000/api/products';
+const API_URL = 'https://product-server-67hw.onrender.com/api/products';
 // Correct way to access environment variables in Vite
 const API_KEY = import.meta.env.VITE_API_KEY;
 
