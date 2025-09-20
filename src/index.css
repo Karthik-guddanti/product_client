@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+
+body {
+    background-color: #f8fafc; /* A pleasant light slate color */
+    font-family: 'Inter', sans-serif; /* A clean, modern font */
+    color: #0f172a; /* Dark slate text for high contrast */
+}
+
+@import url('https://rsms.me/inter/inter.css');
