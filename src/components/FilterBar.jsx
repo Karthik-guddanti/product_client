@@ -26,7 +26,7 @@ const FilterBar = ({ filters, setFilters, sortKey, setSortKey, allCategories = [
   };
 
     return (
-        <aside className="p-6 bg-white rounded-2xl shadow-lg border border-slate-200 flex flex-col gap-6 min-h-full">
+    <aside className="p-6 bg-white rounded-2xl shadow-lg border border-slate-200 flex flex-col gap-6 min-h-full w-[260px] sm:w-[280px] lg:w-[320px]">
             <h2 className="text-2xl font-bold text-indigo-700 mb-2 text-center">Filters</h2>
             <div className="space-y-6">
                 {/* Price & Stock Range */}

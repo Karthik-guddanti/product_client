@@ -4,10 +4,22 @@ const Pagination = ({ currentPage, totalItems, itemsPerPage, onPageChange }) => 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   if (totalPages <= 1) return null;
 
-  const pageNumbers = Array.from({ length: totalPages }, (_, i) => i + 1);
+  // Window size for page numbers
+  const windowSize = 6;
+  let startPage = Math.max(1, currentPage - Math.floor(windowSize / 2));
+  let endPage = startPage + windowSize - 1;
+  if (endPage > totalPages) {
+    endPage = totalPages;
+    startPage = Math.max(1, endPage - windowSize + 1);
+  }
+
+  const pageNumbers = [];
+  for (let i = startPage; i <= endPage; i++) {
+    pageNumbers.push(i);
+  }
 
   return (
-    <nav className="flex justify-center items-center mt-12">
+    <nav className="flex justify-center items-center mt-4">
       <ul className="flex items-center -space-x-px h-10 text-base">
         <li>
           <button
@@ -18,6 +30,11 @@ const Pagination = ({ currentPage, totalItems, itemsPerPage, onPageChange }) => 
             Previous
           </button>
         </li>
+        {startPage > 1 && (
+          <li key="start-ellipsis">
+            <span className="px-2 text-slate-400">...</span>
+          </li>
+        )}
         {pageNumbers.map(number => (
           <li key={number}>
             <button
@@ -32,6 +49,11 @@ const Pagination = ({ currentPage, totalItems, itemsPerPage, onPageChange }) => 
             </button>
           </li>
         ))}
+        {endPage < totalPages && (
+          <li key="end-ellipsis">
+            <span className="px-2 text-slate-400">...</span>
+          </li>
+        )}
         <li>
           <button
             onClick={() => onPageChange(currentPage + 1)}
