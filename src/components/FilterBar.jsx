@@ -90,14 +90,8 @@ const FilterBar = ({ filters, setFilters, sortKey, setSortKey, allCategories = [
                     </div>
                 </section>
 
-                {/* Upload & Reset */}
+                {/* Reset Only */}
                 <section>
-                    <h3 className="text-lg font-semibold text-slate-700 mb-2">Upload & Reset</h3>
-                                <div className="mb-3">
-                                    <label htmlFor="file-upload" className="block text-sm font-medium text-slate-600 mb-1">Upload Product List</label>
-                                    <input type="file" id="file-upload" onChange={handleFileUpload} accept=".csv, .xlsx" className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"/>
-                                    <p className="text-xs text-slate-500 mt-1">Accepted: <span className="font-semibold text-blue-600">.csv</span> or <span className="font-semibold text-blue-600">.xlsx</span> files.<br/>Columns: <span className="font-semibold">name, price, stock, category</span></p>
-                                </div>
                     <button onClick={resetFilters} className="w-full p-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 transition-colors">
                         Reset All Filters
                     </button>

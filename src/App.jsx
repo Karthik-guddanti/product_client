@@ -8,6 +8,10 @@ const API_URL = 'https://product-server-67hw.onrender.com/api/products';
 const API_KEY = import.meta.env.VITE_API_KEY;
 
 const App = () => {
+  // File upload state for Add Product modal
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploadError, setUploadError] = useState('');
+  const [uploadSuccess, setUploadSuccess] = useState('');
   const [products, setProducts] = useState([]);
   const initialFilters = {
     minPrice: '', maxPrice: '',
@@ -34,6 +38,44 @@ const App = () => {
         console.error("Failed to fetch products:", err);
         setProducts([]);
       });
+  };
+
+  // Handle file selection
+  const handleFileChange = (e) => {
+    setUploadError('');
+    setUploadSuccess('');
+    setUploadFile(e.target.files[0] || null);
+  };
+
+  // Handle file upload
+  const handleFileUpload = async () => {
+    setUploadError('');
+    setUploadSuccess('');
+    if (!uploadFile) {
+      setUploadError('Please select a file to upload.');
+      return;
+    }
+    const formData = new FormData();
+    formData.append('file', uploadFile);
+    try {
+      const res = await fetch(`${API_URL}/upload`, {
+        method: 'POST',
+        headers: {
+          'x-api-key': API_KEY
+        },
+        body: formData
+      });
+      if (res.ok) {
+        setUploadSuccess('File uploaded successfully!');
+        setUploadFile(null);
+        fetchProducts();
+      } else {
+        const errorData = await res.json();
+        setUploadError(errorData.message || 'Failed to upload file.');
+      }
+    } catch (err) {
+      setUploadError('Network error. Failed to upload file.');
+    }
   };
 
   // Fetch products only once on initial component mount
@@ -153,11 +195,14 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50">
-        <header className="mb-8 text-center bg-gradient-to-r from-indigo-100 to-blue-100 py-8 rounded-b-2xl shadow">
-            <h1 className="text-4xl sm:text-5xl font-extrabold text-indigo-900">Smart Product Dashboard</h1>
-            <p className="mt-2 text-lg text-indigo-700">Manage your inventory with advanced editing and filtering.</p>
-        </header>
+  <div className="min-h-screen flex flex-col bg-slate-50">
+    <header className="mb-8 relative bg-gradient-to-r from-indigo-100 to-blue-100 py-8 rounded-b-2xl shadow">
+      <h1 className="text-4xl sm:text-5xl font-extrabold text-indigo-900 text-center">Smart Product Dashboard</h1>
+      <p className="mt-2 text-lg text-indigo-700 text-center">Manage your inventory with advanced editing and filtering.</p>
+      <div className="absolute top-4 right-8 bg-indigo-600 text-white px-4 py-2 rounded-lg shadow font-semibold text-lg">
+        Products: {products.length}
+      </div>
+    </header>
         <div className="flex flex-col lg:flex-row flex-1 gap-8 px-4 sm:px-8">
             <aside className="w-full lg:max-w-xs xl:max-w-sm">
                 <FilterBar
@@ -201,22 +246,34 @@ const App = () => {
                     </div>
                 )}
                 {showAddProduct && (
-                    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-                        <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
-                            <h2 className="text-xl font-bold mb-4 text-indigo-700">Add New Product</h2>
-                            <div className="space-y-3">
-                                <input type="text" placeholder="Name" className="w-full p-2 border rounded" value={newProduct.name} onChange={e => setNewProduct({ ...newProduct, name: e.target.value })} />
-                                <input type="number" placeholder="Price" className="w-full p-2 border rounded" min="0" step="0.01" value={newProduct.price} onChange={e => setNewProduct({ ...newProduct, price: e.target.value })} />
-                                <input type="number" placeholder="Stock" className="w-full p-2 border rounded" min="0" value={newProduct.stock} onChange={e => setNewProduct({ ...newProduct, stock: e.target.value })} />
-                                <input type="text" placeholder="Category" className="w-full p-2 border rounded" value={newProduct.category} onChange={e => setNewProduct({ ...newProduct, category: e.target.value })} />
-                            </div>
-                            {addError && <p className="text-red-500 text-sm mt-3">{addError}</p>}
-                            <div className="flex gap-4 mt-6">
-                                <button className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700" onClick={handleAddProduct}>Add Product</button>
-                                <button className="flex-1 px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400" onClick={() => setShowAddProduct(false)}>Cancel</button>
-                            </div>
-                        </div>
-                    </div>
+          <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md">
+              <h2 className="text-xl font-bold mb-4 text-indigo-700">Add New Product</h2>
+              <div className="space-y-3">
+                <input type="text" placeholder="Name" className="w-full p-2 border rounded" value={newProduct.name} onChange={e => setNewProduct({ ...newProduct, name: e.target.value })} />
+                <input type="number" placeholder="Price" className="w-full p-2 border rounded" min="0" step="0.01" value={newProduct.price} onChange={e => setNewProduct({ ...newProduct, price: e.target.value })} />
+                <input type="number" placeholder="Stock" className="w-full p-2 border rounded" min="0" value={newProduct.stock} onChange={e => setNewProduct({ ...newProduct, stock: e.target.value })} />
+                <input type="text" placeholder="Category" className="w-full p-2 border rounded" value={newProduct.category} onChange={e => setNewProduct({ ...newProduct, category: e.target.value })} />
+                <br></br>
+                <h2 className="text-lg font-semibold text-slate-800 ">or</h2>
+                <div className="pt-2">
+                  <label className="block text-sm font-medium text-slate-600 mb-1">Upload Product List (.csv, .xlsx)</label>
+                  <input type="file" accept=".csv,.xlsx" onChange={handleFileChange} className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                  {uploadFile && (
+                  <button className="mt-3 w-full p-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition" onClick={handleFileUpload}>Upload File</button>
+                  )}
+                  {uploadError && <p className="text-red-500 text-xs mt-2">{uploadError}</p>}
+                  {uploadSuccess && <p className="text-green-600 text-xs mt-2">{uploadSuccess}</p>}
+                  <p className="text-xs text-slate-500 mt-1">Accepted: <span className="font-semibold text-blue-600">.csv</span> or <span className="font-semibold text-blue-600">.xlsx</span> files.<br/>Columns: <span className="font-semibold">name, price, stock, category</span></p>
+                </div>
+              </div>
+              {addError && <p className="text-red-500 text-sm mt-3">{addError}</p>}
+              <div className="flex gap-4 mt-6">
+                <button className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700" onClick={handleAddProduct}>Add Product</button>
+                <button className="flex-1 px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400" onClick={() => setShowAddProduct(false)}>Cancel</button>
+              </div>
+            </div>
+          </div>
                 )}
             </main>
         </div>
