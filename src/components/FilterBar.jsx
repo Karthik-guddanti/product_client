@@ -1,103 +1,169 @@
 import React from 'react';
 
-const FilterBar = ({ filters, setFilters, sortKey, setSortKey, allCategories = [], resetFilters, handleFileUpload }) => {
-    
+const FilterBar = ({ filters, setFilters, sortKey, setSortKey, allCategories, resetFilters }) => {
   const handleNumericFilterChange = (e) => {
     const { name, value } = e.target;
     setFilters(prev => ({ ...prev, [name]: value === '' ? '' : Number(value) }));
   };
 
   const handleCheckboxFilterChange = (e) => {
-    const { id, checked } = e.target;
-    setFilters(prev => ({ ...prev, [id]: checked }));
+    const { name, checked } = e.target;
+    setFilters(prev => ({ ...prev, [name]: checked }));
   };
-    
+
   const handleCategoryChange = (e) => {
     const { value, checked } = e.target;
     setFilters(prev => {
-        const newCategories = new Set(prev.selectedCategories);
-        if (checked) {
-            newCategories.add(value);
-        } else {
-            newCategories.delete(value);
-        }
-        return { ...prev, selectedCategories: Array.from(newCategories) };
+      const selectedCategories = checked
+        ? [...prev.selectedCategories, value]
+        : prev.selectedCategories.filter(cat => cat !== value);
+      return { ...prev, selectedCategories };
     });
   };
 
-    return (
-    <aside className="p-6 bg-white rounded-2xl shadow-lg border border-slate-200 flex flex-col gap-6 min-h-full w-[260px] sm:w-[280px] lg:w-[320px]">
-            <h2 className="text-2xl font-bold text-indigo-700 mb-2 text-center">Filters</h2>
-            <div className="space-y-6">
-                {/* Price & Stock Range */}
-                <section className="pb-4 border-b border-slate-100">
-                    <h3 className="text-lg font-semibold text-slate-700 mb-2">Range</h3>
-                    <div className="space-y-2">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-600 mb-1">Price Range</label>
-                            <div className="flex gap-2">
-                                <input type="number" name="minPrice" value={filters.minPrice} onChange={handleNumericFilterChange} placeholder="Min" className="w-1/2 p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-slate-50"/>
-                                <input type="number" name="maxPrice" value={filters.maxPrice} onChange={handleNumericFilterChange} placeholder="Max" className="w-1/2 p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-slate-50"/>
-                            </div>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-600 mb-1">Stock Range</label>
-                            <div className="flex gap-2">
-                                <input type="number" name="minStock" value={filters.minStock} onChange={handleNumericFilterChange} placeholder="Min" className="w-1/2 p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-slate-50"/>
-                                <input type="number" name="maxStock" value={filters.maxStock} onChange={handleNumericFilterChange} placeholder="Max" className="w-1/2 p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-slate-50"/>
-                            </div>
-                        </div>
-                    </div>
-                </section>
+  return (
+    <div className="bg-white rounded-2xl shadow p-5 border border-slate-200 sticky top-6">
+      <h2 className="text-2xl font-bold text-indigo-800 mb-6 border-b pb-4">Filters & Sort</h2>
 
-                {/* Categories */}
-                <section className="pb-4 border-b border-slate-100">
-                    <h3 className="text-lg font-semibold text-slate-700 mb-2">Categories</h3>
-                                <div className="p-2 h-40 overflow-y-auto border border-slate-200 rounded-lg space-y-2 bg-slate-50">
-                                    {["Electronics","Groceries","Books","Home Goods","Fitness","Clothing","Accessories","Kitchen","Footwear","Stationery","Furniture","Health"].map(category => (
-                                        <div key={category} className="flex items-center transition-all duration-200 hover:bg-blue-50 rounded-lg px-2 py-1">
-                                            <input type="checkbox" id={`cat-${category}`} value={category} checked={filters.selectedCategories.includes(category)} onChange={handleCategoryChange} className="h-4 w-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-400"/>
-                                            <label htmlFor={`cat-${category}`} className="ml-2 text-slate-700 text-sm font-semibold tracking-wide">{category}</label>
-                                        </div>
-                                    ))}
-                                </div>
-                </section>
+      {/* Sort By */}
+      <div className="mb-6">
+        <label htmlFor="sort-key" className="block text-sm font-medium text-slate-700 mb-2">Sort By</label>
+        <select
+          id="sort-key"
+          value={sortKey}
+          onChange={(e) => setSortKey(e.target.value)}
+          className="w-full p-2 border border-slate-300 rounded-lg bg-white text-sm"
+        >
+          <option value="">None</option>
+          <option value="name-asc">Name (A-Z)</option>
+          <option value="name-desc">Name (Z-A)</option>
+          <option value="price-asc">Price (Low to High)</option>
+          <option value="price-desc">Price (High to Low)</option>
+          <option value="stock-asc">Stock (Low to High)</option>
+          <option value="stock-desc">Stock (High to Low)</option>
+        </select>
+      </div>
 
-                {/* Quick Filters & Sort */}
-                <section className="pb-4 border-b border-slate-100">
-                    <h3 className="text-lg font-semibold text-slate-700 mb-2">Quick Filters</h3>
-                    <div className="space-y-2">
-                        <div className="flex items-center">
-                            <input type="checkbox" id="showLowStock" checked={filters.showLowStock} onChange={handleCheckboxFilterChange} className="h-4 w-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-400"/>
-                            <label htmlFor="showLowStock" className="ml-2 text-slate-700 text-sm">Only Show Low Stock</label>
-                        </div>
-                        <div className="flex items-center">
-                            <input type="checkbox" id="showOutOfStock" checked={filters.showOutOfStock} onChange={handleCheckboxFilterChange} className="h-4 w-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-400"/>
-                            <label htmlFor="showOutOfStock" className="ml-2 text-slate-700 text-sm">Only Show Out of Stock</label>
-                        </div>
-                    </div>
-                    <div className="mt-4">
-                        <label htmlFor="sort" className="block text-sm font-medium text-slate-600 mb-1">Sort By</label>
-                        <select id="sort" value={sortKey} onChange={(e) => setSortKey(e.target.value)} className="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 bg-slate-50">
-                            <option value="">Default</option>
-                            <option value="price-asc">Price: Low to High</option>
-                            <option value="price-desc">Price: High to Low</option>
-                            <option value="stock-asc">Stock: Low to High</option>
-                            <option value="stock-desc">Stock: High to Low</option>
-                            <option value="name-asc">Name: A-Z</option>
-                            <option value="name-desc">Name: Z-A</option>
-                        </select>
-                    </div>
-                </section>
+      {/* Price Range */}
+      <div className="mb-6 border-t pt-6">
+        <h3 className="text-lg font-semibold text-slate-800 mb-3">Price Range</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label htmlFor="min-price" className="block text-xs font-medium text-slate-600 mb-1">Min Price</label>
+            <input
+              type="number"
+              id="min-price"
+              name="minPrice"
+              value={filters.minPrice}
+              onChange={handleNumericFilterChange}
+              className="w-full p-2 border border-slate-300 rounded-lg text-sm"
+              min="0"
+              step="0.01"
+            />
+          </div>
+          <div>
+            <label htmlFor="max-price" className="block text-xs font-medium text-slate-600 mb-1">Max Price</label>
+            <input
+              type="number"
+              id="max-price"
+              name="maxPrice"
+              value={filters.maxPrice}
+              onChange={handleNumericFilterChange}
+              className="w-full p-2 border border-slate-300 rounded-lg text-sm"
+              min="0"
+              step="0.01"
+            />
+          </div>
+        </div>
+      </div>
 
-                {/* Reset Only */}
-                <section>
-                    <button onClick={resetFilters} className="w-full p-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-400 transition-colors">
-                        Reset All Filters
-                    </button>
-                </section>
-            </div>
-        </aside>
+      {/* Stock Range */}
+      <div className="mb-6 border-t pt-6">
+        <h3 className="text-lg font-semibold text-slate-800 mb-3">Stock Range</h3>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label htmlFor="min-stock" className="block text-xs font-medium text-slate-600 mb-1">Min Stock</label>
+            <input
+              type="number"
+              id="min-stock"
+              name="minStock"
+              value={filters.minStock}
+              onChange={handleNumericFilterChange}
+              className="w-full p-2 border border-slate-300 rounded-lg text-sm"
+              min="0"
+            />
+          </div>
+          <div>
+            <label htmlFor="max-stock" className="block text-xs font-medium text-slate-600 mb-1">Max Stock</label>
+            <input
+              type="number"
+              id="max-stock"
+              name="maxStock"
+              value={filters.maxStock}
+              onChange={handleNumericFilterChange}
+              className="w-full p-2 border border-slate-300 rounded-lg text-sm"
+              min="0"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Stock Status Checkboxes */}
+      <div className="mb-6 border-t pt-6">
+        <h3 className="text-lg font-semibold text-slate-800 mb-3">Stock Status</h3>
+        <div className="space-y-2">
+          <label className="flex items-center text-sm text-slate-700">
+            <input
+              type="checkbox"
+              name="showLowStock"
+              checked={filters.showLowStock}
+              onChange={handleCheckboxFilterChange}
+              className="mr-2 rounded text-indigo-600 focus:ring-indigo-500"
+            />
+            Low Stock ( &lt; 10)
+          </label>
+          <label className="flex items-center text-sm text-slate-700">
+            <input
+              type="checkbox"
+              name="showOutOfStock"
+              checked={filters.showOutOfStock}
+              onChange={handleCheckboxFilterChange}
+              className="mr-2 rounded text-indigo-600 focus:ring-indigo-500"
+            />
+            Out of Stock (0)
+          </label>
+        </div>
+      </div>
+
+      {/* Categories */}
+      <div className="mb-6 border-t pt-6">
+        <h3 className="text-lg font-semibold text-slate-800 mb-3">Categories</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-1 md:grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+          {allCategories.map(category => (
+            <label key={category} className="flex items-center text-sm text-slate-700">
+              <input
+                type="checkbox"
+                value={category}
+                checked={filters.selectedCategories.includes(category)}
+                onChange={handleCategoryChange}
+                className="mr-2 rounded text-indigo-600 focus:ring-indigo-500"
+              />
+              {category}
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Reset Button */}
+      <div className="border-t pt-6">
+        <button
+          onClick={resetFilters}
+          className="w-full bg-gray-200 text-gray-800 py-2 px-4 rounded-lg font-semibold shadow hover:bg-gray-300 transition text-sm"
+        >
+          Reset All Filters
+        </button>
+      </div>
+    </div>
   );
 };
 

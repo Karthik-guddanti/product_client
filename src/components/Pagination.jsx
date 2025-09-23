@@ -2,68 +2,93 @@ import React from 'react';
 
 const Pagination = ({ currentPage, totalItems, itemsPerPage, onPageChange }) => {
   const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const windowSize = 5; // Number of page buttons to show around the current page
+
   if (totalPages <= 1) return null;
 
-  // Window size for page numbers
-  const windowSize = 6;
-  let startPage = Math.max(1, currentPage - Math.floor(windowSize / 2));
-  let endPage = startPage + windowSize - 1;
-  if (endPage > totalPages) {
-    endPage = totalPages;
-    startPage = Math.max(1, endPage - windowSize + 1);
-  }
+  const getPageNumbers = () => {
+    let startPage, endPage;
+    if (totalPages <= windowSize) {
+      // Less than windowSize total pages so show all
+      startPage = 1;
+      endPage = totalPages;
+    } else {
+      // More than windowSize total pages so calculate start and end pages
+      const maxPagesBeforeCurrentPage = Math.floor(windowSize / 2);
+      const maxPagesAfterCurrentPage = Math.ceil(windowSize / 2) - 1;
+      if (currentPage <= maxPagesBeforeCurrentPage) {
+        // current page near the start
+        startPage = 1;
+        endPage = windowSize;
+      } else if (currentPage + maxPagesAfterCurrentPage >= totalPages) {
+        // current page near the end
+        startPage = totalPages - windowSize + 1;
+        endPage = totalPages;
+      } else {
+        // current page somewhere in the middle
+        startPage = currentPage - maxPagesBeforeCurrentPage;
+        endPage = currentPage + maxPagesAfterCurrentPage;
+      }
+    }
 
-  const pageNumbers = [];
-  for (let i = startPage; i <= endPage; i++) {
-    pageNumbers.push(i);
-  }
+    const pages = [];
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+    return pages;
+  };
+
+  const pageNumbers = getPageNumbers();
+
+  const buttonClass = (isActive) => 
+    `px-3 py-1.5 mx-1 rounded-lg text-sm font-semibold transition ` +
+    (isActive ? 'bg-indigo-600 text-white shadow-md' : 'bg-white text-indigo-700 hover:bg-indigo-50 border border-slate-300');
+
+  const navButtonClass = `px-3 py-1.5 mx-1 rounded-lg text-sm font-semibold bg-white text-slate-600 border border-slate-300 hover:bg-slate-100 transition`;
 
   return (
-    <nav className="flex justify-center items-center mt-4">
-      <ul className="flex items-center -space-x-px h-10 text-base">
-        <li>
-          <button
-            onClick={() => onPageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="flex items-center justify-center px-4 h-10 ms-0 leading-tight text-slate-500 bg-white border border-slate-300 rounded-l-lg hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Previous
-          </button>
-        </li>
-        {startPage > 1 && (
-          <li key="start-ellipsis">
-            <span className="px-2 text-slate-400">...</span>
-          </li>
-        )}
-        {pageNumbers.map(number => (
-          <li key={number}>
-            <button
-              onClick={() => onPageChange(number)}
-              className={`flex items-center justify-center px-4 h-10 leading-tight border border-slate-300 ${
-                currentPage === number
-                  ? 'text-white bg-indigo-600 border-indigo-600'
-                  : 'text-slate-500 bg-white hover:bg-slate-100 hover:text-slate-700'
-              }`}
-            >
-              {number}
-            </button>
-          </li>
-        ))}
-        {endPage < totalPages && (
-          <li key="end-ellipsis">
-            <span className="px-2 text-slate-400">...</span>
-          </li>
-        )}
-        <li>
-          <button
-            onClick={() => onPageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="flex items-center justify-center px-4 h-10 leading-tight text-slate-500 bg-white border border-slate-300 rounded-r-lg hover:bg-slate-100 hover:text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Next
-          </button>
-        </li>
-      </ul>
+    <nav className="flex items-center justify-center space-x-1" aria-label="Pagination">
+      <button
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className={navButtonClass}
+      >
+        Previous
+      </button>
+
+      {/* Render ellipses if needed at the start */}
+      {pageNumbers[0] > 1 && (
+        <>
+          <button onClick={() => onPageChange(1)} className={buttonClass(false)}>1</button>
+          {pageNumbers[0] > 2 && <span className="text-slate-500 px-1">...</span>}
+        </>
+      )}
+
+      {pageNumbers.map(number => (
+        <button
+          key={number}
+          onClick={() => onPageChange(number)}
+          className={buttonClass(number === currentPage)}
+        >
+          {number}
+        </button>
+      ))}
+
+      {/* Render ellipses if needed at the end */}
+      {pageNumbers[pageNumbers.length - 1] < totalPages && (
+        <>
+          {pageNumbers[pageNumbers.length - 1] < totalPages - 1 && <span className="text-slate-500 px-1">...</span>}
+          <button onClick={() => onPageChange(totalPages)} className={buttonClass(false)}>{totalPages}</button>
+        </>
+      )}
+
+      <button
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className={navButtonClass}
+      >
+        Next
+      </button>
     </nav>
   );
 };
